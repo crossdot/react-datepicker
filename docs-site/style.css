@@ -246,6 +246,34 @@
     text-align: center;
     top: 50%; }
 
+.react-datepicker__open-icon {
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-block;
+  height: 0;
+  outline: 0;
+  padding: 0;
+  vertical-align: middle; }
+  .react-datepicker__open-icon::after {
+    border-radius: 5%;
+    bottom: 0;
+    box-sizing: border-box;
+    color: #fff;
+    content: "\2261";
+    /*background-image: url("http://localhost:8404/panbetweb/ru/images/calico.png");*/
+    cursor: pointer;
+    font-size: 12px;
+    height: 16px;
+    width: 16px;
+    line-height: 1;
+    margin: -8px auto 0;
+    padding: 2px;
+    position: absolute;
+    right: -21px;
+    text-align: center;
+    top: 50%; }
+
 .react-datepicker__today-button {
   background: #f0f0f0;
   border-top: 1px solid #aeaeae;

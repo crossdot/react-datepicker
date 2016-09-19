@@ -1,5 +1,6 @@
 import React from 'react'
 import Day from './day'
+import WeekNumber from './weeknumber'
 
 var Week = React.createClass({
   displayName: 'Week',
@@ -67,6 +68,7 @@ var Week = React.createClass({
   render () {
     return (
       <div className="react-datepicker__week">
+        <WeekNumber weekNumber={this.props.day.clone().week()} />
         {this.renderDays()}
       </div>
     )

@@ -20,6 +20,8 @@ export default React.createClass({
   render () {
     return <DatePicker
         selected={this.state.startDate}
-        onChange={this.handleChange} />
+        onChange={this.handleChange}
+        openOnFocus={Boolean(false)}
+        showOpenButton={Boolean(true)} />
   }
 })

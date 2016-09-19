@@ -3,6 +3,8 @@ import find from 'lodash/find'
 import YearDropdown from './year_dropdown'
 import MonthDropdown from './month_dropdown'
 import Month from './month'
+import Year from './year'
+import YearRange from './year_range'
 import React from 'react'
 import { isSameDay, allDaysDisabledBefore, allDaysDisabledAfter, getEffectiveMinDate, getEffectiveMaxDate } from './date_utils'
 
@@ -63,7 +65,8 @@ var Calendar = React.createClass({
   getInitialState () {
     return {
       date: this.localizeMoment(this.getDateInView()),
-      selectingDate: null
+      selectingDate: null,
+      scope: 'month'
     }
   },
 
@@ -125,8 +128,48 @@ var Calendar = React.createClass({
     })
   },
 
+  increaseYear () {
+    this.setState({
+      date: this.state.date.clone().add(1, 'year')
+    })
+  },
+
+  decreaseYear () {
+    this.setState({
+      date: this.state.date.clone().subtract(1, 'year')
+    })
+  },
+
+  increaseYearRange () {
+    this.setState({
+      date: this.state.date.clone().add(9, 'year')
+    })
+  },
+
+  decreaseYearRange () {
+    this.setState({
+      date: this.state.date.clone().subtract(9, 'year')
+    })
+  },
+
   handleDayClick (day, event) {
     this.props.onSelect(day, event)
+  },
+
+  handleMonthClick (day, event) {
+    console.log(day)
+    this.setState({
+      date: day.clone(),
+      scope: 'month'
+    })
+  },
+
+  handleYearClick (day, event) {
+    console.log(day)
+    this.setState({
+      date: day.clone(),
+      scope: 'year'
+    })
   },
 
   handleDayMouseEnter (day) {
@@ -179,15 +222,51 @@ var Calendar = React.createClass({
         onClick={this.increaseMonth} />
   },
 
+  renderPreviousYearButton () {
+    if (allDaysDisabledBefore(this.state.date, 'year', this.props)) {
+      return
+    }
+    return <a
+        className='react-datepicker__navigation react-datepicker__navigation--previous'
+        onClick={this.decreaseYear} />
+  },
+
+  renderNextYearButton () {
+    if (allDaysDisabledAfter(this.state.date, 'year', this.props)) {
+      return
+    }
+    return <a
+        className='react-datepicker__navigation react-datepicker__navigation--next'
+        onClick={this.increaseYear} />
+  },
+
+  renderPreviousYearRangeButton () {
+    if (allDaysDisabledBefore(this.state.date, 'year', this.props)) {
+      return
+    }
+    return <a
+        className='react-datepicker__navigation react-datepicker__navigation--previous'
+        onClick={this.decreaseYearRange} />
+  },
+
+  renderNextYearRangeButton () {
+    if (allDaysDisabledAfter(this.state.date, 'year', this.props)) {
+      return
+    }
+    return <a
+        className='react-datepicker__navigation react-datepicker__navigation--next'
+        onClick={this.increaseYearRange} />
+  },
+
   renderCurrentMonth () {
     var classes = ['react-datepicker__current-month']
     if (this.props.showYearDropdown) {
       classes.push('react-datepicker__current-month--hasYearDropdown')
     }
     return (
-      <div className={classes.join(' ')}>
+      <span className={classes.join(' ')}>
         {this.state.date.format(this.props.dateFormat)}
-      </div>
+      </span>
     )
   },
 
@@ -229,45 +308,155 @@ var Calendar = React.createClass({
     )
   },
 
+  nextScopeClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    var scopes = ['month', 'year', 'year_range']
+    var index = scopes.indexOf(this.state.scope)
+    index++
+    if (index >= scopes.length) {
+      index = 0
+    }
+    this.setState({
+      scope: scopes[index]
+    })
+  },
+
   render () {
     return (
-      <div className="react-datepicker">
-        <div className="react-datepicker__triangle"></div>
-        <div className="react-datepicker__header">
-          {this.renderPreviousMonthButton()}
-          {this.renderCurrentMonth()}
-          <div
-              className={`react-datepicker__header__dropdown react-datepicker__header__dropdown--${this.props.dropdownMode}`}
-              onFocus={this.handleDropdownFocus}>
-            {this.renderMonthDropdown()}
-            {this.renderYearDropdown()}
+      <div>
+        {this.state.scope === 'month' ? (
+          <div className="react-datepicker">
+            <div className="react-datepicker__triangle"></div>
+            <div className="react-datepicker__header">
+              {this.renderPreviousMonthButton()}
+              <a href="#" onClick={this.nextScopeClick}>{this.renderCurrentMonth()}</a>
+              <div
+                  className={`react-datepicker__header__dropdown react-datepicker__header__dropdown--${this.props.dropdownMode}`}
+                  onFocus={this.handleDropdownFocus}>
+                {this.renderMonthDropdown()}
+                {this.renderYearDropdown()}
+              </div>
+              {this.renderNextMonthButton()}
+              <div className="react-datepicker__day-names">
+                <div className="react-datepicker__day-name">wk</div>
+                {this.header()}
+              </div>
+            </div>
+            <Month
+                day={this.state.date}
+                onDayClick={this.handleDayClick}
+                onDayMouseEnter={this.handleDayMouseEnter}
+                onMouseLeave={this.handleMonthMouseLeave}
+                minDate={this.props.minDate}
+                maxDate={this.props.maxDate}
+                excludeDates={this.props.excludeDates}
+                highlightDates={this.props.highlightDates}
+                selectingDate={this.state.selectingDate}
+                includeDates={this.props.includeDates}
+                fixedHeight={this.props.fixedHeight}
+                filterDate={this.props.filterDate}
+                selected={this.props.selected}
+                selectsStart={this.props.selectsStart}
+                selectsEnd={this.props.selectsEnd}
+                startDate={this.props.startDate}
+                endDate={this.props.endDate}
+                peekNextMonth={this.props.peekNextMonth}
+                utcOffset={this.props.utcOffset}/>
+
+            {this.renderTodayButton()}
+
           </div>
-          {this.renderNextMonthButton()}
-          <div className="react-datepicker__day-names">
-            {this.header()}
+        ) : null}
+        {this.state.scope === 'year' ? (
+          <div className="react-datepicker">
+            <div className="react-datepicker__triangle"></div>
+            <div className="react-datepicker__header">
+              {this.renderPreviousYearButton()}
+              <a href="#" onClick={this.nextScopeClick}>
+                <span className="react-datepicker__current-month">{this.state.date.year()}</span>
+              </a>
+              {this.renderNextYearButton()}
+              <div className="react-datepicker__month">
+                <div className="react-datepicker__day-names">
+                  <div className="react-datepicker__day-name"></div>
+                  <div className="react-datepicker__day-name"></div>
+                  <div className="react-datepicker__day-name"></div>
+                  <div className="react-datepicker__day-name"></div>
+                  <div className="react-datepicker__day-name"></div>
+                  <div className="react-datepicker__day-name"></div>
+                  <div className="react-datepicker__day-name"></div>
+                  <div className="react-datepicker__day-name"></div>
+                </div>
+              </div>
+            </div>
+            <Year
+                day={this.state.date}
+                onMonthClick={this.handleMonthClick}
+                onMonthMouseEnter={this.handleDayMouseEnter}
+                onMouseLeave={this.handleMonthMouseLeave}
+                minDate={this.props.minDate}
+                maxDate={this.props.maxDate}
+                excludeDates={this.props.excludeDates}
+                highlightDates={this.props.highlightDates}
+                selectingDate={this.state.selectingDate}
+                includeDates={this.props.includeDates}
+                fixedHeight={this.props.fixedHeight}
+                filterDate={this.props.filterDate}
+                selected={this.props.selected}
+                selectsStart={this.props.selectsStart}
+                selectsEnd={this.props.selectsEnd}
+                startDate={this.props.startDate}
+                endDate={this.props.endDate}
+                peekNextYear={this.props.peekNextMonth}
+                utcOffset={this.props.utcOffset}/>
           </div>
-        </div>
-        <Month
-            day={this.state.date}
-            onDayClick={this.handleDayClick}
-            onDayMouseEnter={this.handleDayMouseEnter}
-            onMouseLeave={this.handleMonthMouseLeave}
-            minDate={this.props.minDate}
-            maxDate={this.props.maxDate}
-            excludeDates={this.props.excludeDates}
-            highlightDates={this.props.highlightDates}
-            selectingDate={this.state.selectingDate}
-            includeDates={this.props.includeDates}
-            fixedHeight={this.props.fixedHeight}
-            filterDate={this.props.filterDate}
-            selected={this.props.selected}
-            selectsStart={this.props.selectsStart}
-            selectsEnd={this.props.selectsEnd}
-            startDate={this.props.startDate}
-            endDate={this.props.endDate}
-            peekNextMonth={this.props.peekNextMonth}
-            utcOffset={this.props.utcOffset}/>
-        {this.renderTodayButton()}
+        ) : null}
+        {this.state.scope === 'year_range' ? (
+            <div className="react-datepicker">
+              <div className="react-datepicker__triangle"></div>
+              <div className="react-datepicker__header">
+                {this.renderPreviousYearRangeButton()}
+                <a href="#" onClick={this.nextScopeClick}>
+                  <span className="react-datepicker__current-month">{this.state.date.clone().add(-4, 'year').year()}-{this.state.date.clone().add(4, 'year').year()}</span>
+                </a>
+                {this.renderNextYearRangeButton()}
+                <div className="react-datepicker__month">
+                  <div className="react-datepicker__day-names">
+                    <div className="react-datepicker__day-name"></div>
+                    <div className="react-datepicker__day-name"></div>
+                    <div className="react-datepicker__day-name"></div>
+                    <div className="react-datepicker__day-name"></div>
+                    <div className="react-datepicker__day-name"></div>
+                    <div className="react-datepicker__day-name"></div>
+                    <div className="react-datepicker__day-name"></div>
+                    <div className="react-datepicker__day-name"></div>
+                  </div>
+                </div>
+              </div>
+              <YearRange
+                  day={this.state.date}
+                  onYearClick={this.handleYearClick}
+                  onYearMouseEnter={this.handleDayMouseEnter}
+                  onMouseLeave={this.handleMonthMouseLeave}
+                  minDate={this.props.minDate}
+                  maxDate={this.props.maxDate}
+                  excludeDates={this.props.excludeDates}
+                  highlightDates={this.props.highlightDates}
+                  selectingDate={this.state.selectingDate}
+                  includeDates={this.props.includeDates}
+                  fixedHeight={this.props.fixedHeight}
+                  filterDate={this.props.filterDate}
+                  selected={this.props.selected}
+                  selectsStart={this.props.selectsStart}
+                  selectsEnd={this.props.selectsEnd}
+                  startDate={this.props.startDate}
+                  endDate={this.props.endDate}
+                  peekNextYear={this.props.peekNextMonth}
+                  utcOffset={this.props.utcOffset}/>
+            </div>
+        ) : null}
       </div>
     )
   }

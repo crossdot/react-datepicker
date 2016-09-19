@@ -43,6 +43,7 @@ var DatePicker = React.createClass({
     onBlur: React.PropTypes.func,
     onChange: React.PropTypes.func.isRequired,
     onFocus: React.PropTypes.func,
+    openOnFocus: React.PropTypes.bool,
     openToDate: React.PropTypes.object,
     peekNextMonth: React.PropTypes.bool,
     placeholderText: React.PropTypes.string,
@@ -56,6 +57,7 @@ var DatePicker = React.createClass({
     selectsEnd: React.PropTypes.bool,
     selectsStart: React.PropTypes.bool,
     showMonthDropdown: React.PropTypes.bool,
+    showOpenButton: React.PropTypes.bool,
     showYearDropdown: React.PropTypes.bool,
     startDate: React.PropTypes.object,
     tabIndex: React.PropTypes.number,
@@ -73,9 +75,11 @@ var DatePicker = React.createClass({
       dropdownMode: 'scroll',
       onFocus () {},
       onBlur () {},
+      openOnFocus: true,
       popoverAttachment: 'top left',
       popoverTargetAttachment: 'bottom left',
       popoverTargetOffset: '10px 0',
+      showOpenButton: false,
       tetherConstraints: [
         {
           to: 'window',
@@ -98,7 +102,9 @@ var DatePicker = React.createClass({
 
   handleFocus (event) {
     this.props.onFocus(event)
-    this.setOpen(true)
+    if (this.props.openOnFocus) {
+      this.setOpen(true)
+    }
   },
 
   cancelFocusInput () {
@@ -124,7 +130,9 @@ var DatePicker = React.createClass({
   },
 
   handleCalendarClickOutside (event) {
-    this.setOpen(false)
+    if (!event.target.isSameNode(this.refs.openButton)) {
+      this.setOpen(false)
+    }
   },
 
   handleSelect (date, event) {
@@ -139,7 +147,7 @@ var DatePicker = React.createClass({
   },
 
   onInputClick () {
-    if (!this.props.disabled) {
+    if (!this.props.disabled && this.props.openOnFocus) {
       this.setOpen(true)
     }
   },
@@ -181,6 +189,12 @@ var DatePicker = React.createClass({
   onClearClick (event) {
     event.preventDefault()
     this.props.onChange(null, event)
+  },
+
+  onOpenClick (event) {
+    event.preventDefault()
+    this.setOpen(true)
+    this.refs.input.focus()
   },
 
   renderCalendar () {
@@ -250,7 +264,15 @@ var DatePicker = React.createClass({
 
   renderClearButton () {
     if (this.props.isClearable && this.props.selected != null) {
-      return <a className="react-datepicker__close-icon" href="#" onClick={this.onClearClick}></a>
+      return <a ref="clearButton" className="react-datepicker__close-icon" href="#" onClick={this.onClearClick}></a>
+    } else {
+      return null
+    }
+  },
+
+  renderOpenButton () {
+    if (this.props.showOpenButton) {
+      return <a ref='openButton' className="react-datepicker__open-icon" href="#" onClick={this.onOpenClick}></a>
     } else {
       return null
     }
@@ -273,6 +295,7 @@ var DatePicker = React.createClass({
           <div className="react-datepicker__input-container">
             {this.renderDateInput()}
             {this.renderClearButton()}
+            {this.renderOpenButton()}
           </div>
           {calendar}
         </TetherComponent>
